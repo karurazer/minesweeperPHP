@@ -8,10 +8,16 @@
 <body>
     <?php
     class Cell{
-        private $is_mine = false;
-        private $is_open = false;
-        private $mines_around = 0;
+        public $is_mine = false;
+        public $is_open = false;
+        public $row;
+        public $column;
+        public $mines_around = 0;
         private $max_mines_around = 5;
+        function __construct($column, $row){
+            $this->column=$column;
+            $this->row=$row;
+        }
         function can_be_mine(){
             if(!$this->is_mine && $this->mines_around <= $this->max_mines_around){
                 return true;
@@ -27,16 +33,22 @@
             $this->is_mine = true;
         }
         function show(){
-            if(!$this->is_mine && $this->mines_around == 0){
-                $this->is_open = true;
-            }
-           
             if ($this->is_open){
-                echo $this->mines_around . ' ';
+                if($this->is_mine){
+                    echo '+ ';
+                }else{
+                    echo $this->mines_around . ' ';
                 }
+                
+            }else{
+                echo '+ ';
             }
+            }
+        
+            
           
-        }
+        
+    }
      
     class Minesweeper{
         private $columns;
@@ -45,7 +57,7 @@
         private $bombs;
         private $board = [];
         function __construct($columns = 8, $rows = 8, $bombs=20){
-            $this->size = $this->columns * $this->rows;
+            
             $this->columns = $columns;
             $this->rows = $rows;
             $this->size = $this->rows * $this->columns;
@@ -54,7 +66,7 @@
             for ($j=0;$j<$this->rows;$j++){
                 $line=[];
                 for ($i=0; $i < $this->columns; $i++) { 
-                    $line[] = new Cell();
+                    $line[] = new Cell($i, $j);
                 }
                 $this->board[] = $line;
             }
@@ -75,7 +87,7 @@
                 
             }
         }
-        private function get_neighbors($row, $column){
+        function get_neighbors($row, $column){
             $neigbors = [];
             if ($row > 0){
                 $neigbors[] = $this->board[$row - 1][$column];
@@ -107,23 +119,28 @@
             foreach($this->get_neighbors($row, $column) as $neigbor){
                 $neigbor->plus_neighbor();
             }
-        
-            
-            
-            
         }
-        function play(){
-            
-        }
-        function show_board(){
+        function open_empty_cells(){
             foreach($this->board as $line){
                 foreach($line as $cell){
-                    $cell->show();
+                    if ($cell->mines_around == 0 && !$cell->is_mine){
+                        $cell->is_open = true;
+                        foreach($this->get_neighbors($cell->row, $cell->column) as $elem){
+                            $elem->is_open = true;
+                        }   
+                    }   
                 }
-                echo '<br>';
-            
             }
         }
+        function show_board(){
+            $this->open_empty_cells();
+            foreach($this->board as $line){
+                foreach($line as $cell){
+                        $cell->show();    
+                    }
+                    echo '<br>';
+                }
+            }
     }
 $a = new Minesweeper();
 
