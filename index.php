@@ -11,12 +11,32 @@
         private $is_mine = false;
         private $is_open = false;
         private $mines_around = 0;
-    }
+        private $max_mines_around = 5;
+        function can_be_mine(){
+            if(!$this->is_mine && $this->mines_around <= $this->max_mines_around){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        
+        function set_bomb(){
+            $this->is_mine = true;
+        }
+        function show(){
+            if ($this->is_mine){
+                echo 'mine ';
+            }
+            else{
+                echo '0';
+            }
+        }
+    }   
     class Minesweeper{
-        public $columns;
-        public $rows;
+        private $columns;
+        private $rows;
         private $size;
-        public $bombs;
+        private $bombs;
         private $board = [];
         function __construct($columns = 8, $rows = 8, $bombs=10){
             $this->size = $this->columns * $this->rows;
@@ -35,9 +55,19 @@
             
 
         }
-        
+  
         function place_mines(){
-            
+            for ($i=0; $i < $this->bombs; $i++) { 
+                $column = random_int(0, $this->columns - 1);
+                $row = random_int(0, $this->rows - 1);
+                if ($this->board[$row][$column]->can_be_mine()){
+                    $this->board[$row][$column]->set_bomb();
+                }
+                else{
+                    $i--;
+                }
+                
+            }
         }
         function find_neighbors(){
 
@@ -50,7 +80,8 @@
         }
     }
 $a = new Minesweeper();
-$a->show_board()
+$a->place_mines();
+$a->show_board();
     ?>
 </body>
 </html>
