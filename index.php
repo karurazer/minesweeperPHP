@@ -27,21 +27,24 @@
             $this->is_mine = true;
         }
         function show(){
-            if ($this->is_mine){
-                echo '1';
+            if(!$this->is_mine && $this->mines_around == 0){
+                $this->is_open = true;
             }
-            else{
-                echo '0';
+           
+            if ($this->is_open){
+                echo $this->mines_around . ' ';
+                }
             }
+          
         }
-    }   
+     
     class Minesweeper{
         private $columns;
         private $rows;
         private $size;
         private $bombs;
         private $board = [];
-        function __construct($columns = 8, $rows = 8, $bombs=10){
+        function __construct($columns = 8, $rows = 8, $bombs=20){
             $this->size = $this->columns * $this->rows;
             $this->columns = $columns;
             $this->rows = $rows;
@@ -55,17 +58,16 @@
                 }
                 $this->board[] = $line;
             }
-            
-
+            $this->place_mines();
         }
-  
-        function place_mines(){
+        
+        private function place_mines(){
             for ($i=0; $i < $this->bombs; $i++) { 
                 $column = random_int(0, $this->columns - 1);
                 $row = random_int(0, $this->rows - 1);
                 if ($this->board[$row][$column]->can_be_mine()){
                     $this->board[$row][$column]->set_bomb();
-                    $this->add_neighbors($row, $column);
+                    $this->add_neighbors_mines($row, $column);
                 }
                 else{
                     $i--;
@@ -73,32 +75,39 @@
                 
             }
         }
-        function add_neighbors($row, $column){
+        private function get_neighbors($row, $column){
+            $neigbors = [];
             if ($row > 0){
-                $this->board[$row - 1][$column]->plus_neighbor();
+                $neigbors[] = $this->board[$row - 1][$column];
                 if ($column != $this->columns - 1){
-                    $this->board[$row - 1][$column + 1]->plus_neighbor();
+                    $neigbors[] = $this->board[$row - 1][$column + 1];
                 }
                 if ($column > 0){
-                    $this->board[$row - 1][$column - 1]->plus_neighbor();
+                    $neigbors[] = $this->board[$row - 1][$column - 1];
                 }
             }
             if ($row != $this->rows - 1){
-                $this->board[$row + 1][$column]->plus_neighbor();
+                $neigbors[] = $this->board[$row + 1][$column];
                 if ($column != $this->columns - 1){
-                    $this->board[$row + 1][$column + 1]->plus_neighbor();
+                    $neigbors[] = $this->board[$row + 1][$column + 1];
                 }
                 if ($column > 0){
-                    $this->board[$row + 1][$column - 1]->plus_neighbor();
+                    $neigbors[] = $this->board[$row + 1][$column - 1];
                 }
             }
             if ($column != $this->columns - 1){
-                $this->board[$row][$column + 1]->plus_neighbor();
+                $neigbors[] = $this->board[$row][$column + 1];
             }
             if ($column > 0){
-                $this->board[$row][$column - 1]->plus_neighbor();
+                $neigbors[] = $this->board[$row][$column - 1];
             }
-            
+            return $neigbors;
+        }
+        private function add_neighbors_mines($row, $column){
+            foreach($this->get_neighbors($row, $column) as $neigbor){
+                $neigbor->plus_neighbor();
+            }
+        
             
             
             
@@ -107,11 +116,17 @@
             
         }
         function show_board(){
-            var_dump($this->board);
+            foreach($this->board as $line){
+                foreach($line as $cell){
+                    $cell->show();
+                }
+                echo '<br>';
+            
+            }
         }
     }
 $a = new Minesweeper();
-$a->place_mines();
+
 $a->show_board();
     ?>
 </body>
