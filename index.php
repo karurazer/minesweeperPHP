@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="author" content="karurazer">
     <title>Saper</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <!-- <style></style> сделать чтобы php сетку создовал как надо и кнопок много -->
 </head>
 <body>
-    <?php
+    <main>
+
+        <?php
     class Cell{
         public $is_mine = false;
         public $is_open = false;
@@ -35,13 +39,13 @@
         function show(){
             if ($this->is_open){
                 if($this->is_mine){
-                    echo '+ ';
+                    echo '<button>9</button>';
                 }else{
-                    echo $this->mines_around . ' ';
+                    echo '<button>' . $this->mines_around . '</button>';
                 }
                 
             }else{
-                echo '+ ';
+                echo '<button>9</button>';
             }
             }
         
@@ -138,7 +142,7 @@
                 foreach($line as $cell){
                         $cell->show();    
                     }
-                    echo '<br>';
+                echo '<br>';
                 }
             }
     }
@@ -146,5 +150,7 @@ $a = new Minesweeper();
 
 $a->show_board();
     ?>
+        
+    </main>
 </body>
 </html>
