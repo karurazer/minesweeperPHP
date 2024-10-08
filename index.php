@@ -19,13 +19,16 @@
                 return false;
             }
         }
+        function plus_neighbor(){
+            $this->mines_around++;
+        }
         
         function set_bomb(){
             $this->is_mine = true;
         }
         function show(){
             if ($this->is_mine){
-                echo 'mine ';
+                echo '1';
             }
             else{
                 echo '0';
@@ -62,6 +65,7 @@
                 $row = random_int(0, $this->rows - 1);
                 if ($this->board[$row][$column]->can_be_mine()){
                     $this->board[$row][$column]->set_bomb();
+                    $this->add_neighbors($row, $column);
                 }
                 else{
                     $i--;
@@ -69,8 +73,35 @@
                 
             }
         }
-        function find_neighbors(){
-
+        function add_neighbors($row, $column){
+            if ($row > 0){
+                $this->board[$row - 1][$column]->plus_neighbor();
+                if ($column != $this->columns - 1){
+                    $this->board[$row - 1][$column + 1]->plus_neighbor();
+                }
+                if ($column > 0){
+                    $this->board[$row - 1][$column - 1]->plus_neighbor();
+                }
+            }
+            if ($row != $this->rows - 1){
+                $this->board[$row + 1][$column]->plus_neighbor();
+                if ($column != $this->columns - 1){
+                    $this->board[$row + 1][$column + 1]->plus_neighbor();
+                }
+                if ($column > 0){
+                    $this->board[$row + 1][$column - 1]->plus_neighbor();
+                }
+            }
+            if ($column != $this->columns - 1){
+                $this->board[$row][$column + 1]->plus_neighbor();
+            }
+            if ($column > 0){
+                $this->board[$row][$column - 1]->plus_neighbor();
+            }
+            
+            
+            
+            
         }
         function play(){
             
