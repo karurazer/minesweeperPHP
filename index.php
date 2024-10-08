@@ -27,6 +27,9 @@
             $this->column=$column;
             $this->row=$row;
         }
+        function open(){
+            $this->is_open = true;
+        }
         function can_be_mine(){
             if(!$this->is_mine && $this->mines_around <= $this->max_mines_around){
                 return true;
@@ -45,7 +48,7 @@
         function show(){
             echo '<form action="index.php" method="post">';
             if ($this->is_open){
-                if($this->mines_around == 0){
+                if($this->mines_around == 0 && !$this->is_mine){
                     echo '<span></span>';
                 }else if($this->is_mine){
                     echo'<img src="src/img/mine.png" alt="mine">';
@@ -58,7 +61,7 @@
             else{
                 echo '<input type="submit" class="nothing" value="">';
             }
-            echo "<input type='hidden' name='cell' value='[$this->row, $this->column]'>";
+            echo "<input type='hidden' name='cell' value='$this->row $this->column'>";
             echo '</form>';
         }
             
@@ -72,10 +75,9 @@
         private $size;
         private $bombs;
         private $board = [];
-        function __construct($columns = 8, $rows = 8, $bombs=20){
+        function __construct($columns = 8, $rows = 8, $bombs=10){
             if (isset($_POST['restart'])){
-                session_unset();
-                
+                session_unset();  
             }
             $this->columns = $columns;
             $this->rows = $rows;
@@ -83,7 +85,16 @@
             $this->bombs = $bombs;
 
             if(isset($_SESSION['board'])){
-                $this->board = $_SESSION['board'];
+                if(isset($_POST['cell'])){
+                    explode(" ",$_POST['cell']);
+                    $new_row = $_POST['cell'][0];
+                    $new_column = $_POST['cell'][2];
+                    $this->board = $_SESSION['board'];
+                    $this->board[$new_row][$new_column]->open(); 
+                    if($this->board[$new_row][$new_column]->mines_around == 0){
+                        $this->open_around_cell($new_row, $new_column);
+                    }
+                }
             }else{
                 for ($j=0;$j<$this->rows;$j++){
                         $line=[];
@@ -149,20 +160,18 @@
                 $neigbor->plus_neighbor();
             }
         }
-        function open_empty_cells(){
-            foreach($this->board as $line){
-                foreach($line as $cell){
-                    if ($cell->mines_around == 0 && !$cell->is_mine){
-                        $cell->is_open = true;
-                        foreach($this->get_neighbors($cell->row, $cell->column) as $elem){
-                            $elem->is_open = true;
-                        }   
-                    }   
+        function open_around_cell($row, $column){
+           $t = $this->get_neighbors($row, $column);
+            foreach($t as $cell){
+                if($cell->mines_around == 0 && !$cell->is_open){
+                    $cell->open();
+                    $this->open_around_cell($cell->row, $cell->column);
                 }
+                $cell->open();
+                
             }
         }
         function show_board(){
-            $this->open_empty_cells();
             foreach($this->board as $line){
                 foreach($line as $cell){
                         $cell->show();    
