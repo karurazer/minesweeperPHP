@@ -1,3 +1,7 @@
+<?php
+    session_start();
+    
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +13,8 @@
 </head>
 <body>
     <main>
-    
+        
+        
         <?php
     class Cell{
         public $is_mine = false;
@@ -36,14 +41,16 @@
         function set_bomb(){
             $this->is_mine = true;
         }
+        
         function show(){
+            echo '<form action="index.php" method="post">';
             if ($this->is_open){
                 if($this->mines_around == 0){
                     echo '<span></span>';
                 }else if($this->is_mine){
                     echo'<img src="src/img/mine.png" alt="mine">';
                 }
-                else{
+                else{      
                     echo "<input type='submit' class='number_mines' value='$this->mines_around'>";
                 }
                
@@ -51,8 +58,9 @@
             else{
                 echo '<input type="submit" class="nothing" value="">';
             }
+            echo "<input type='hidden' name='cell' value='[$this->row, $this->column]'>";
+            echo '</form>';
         }
-        
             
           
         
@@ -65,22 +73,35 @@
         private $bombs;
         private $board = [];
         function __construct($columns = 8, $rows = 8, $bombs=20){
-            
+            if (isset($_POST['restart'])){
+                session_unset();
+                
+            }
             $this->columns = $columns;
             $this->rows = $rows;
             $this->size = $this->rows * $this->columns;
             $this->bombs = $bombs;
-            
-            for ($j=0;$j<$this->rows;$j++){
-                $line=[];
-                for ($i=0; $i < $this->columns; $i++) { 
-                    $line[] = new Cell($i, $j);
-                }
-                $this->board[] = $line;
+
+            if(isset($_SESSION['board'])){
+                $this->board = $_SESSION['board'];
+            }else{
+                for ($j=0;$j<$this->rows;$j++){
+                        $line=[];
+                    for ($i=0; $i < $this->columns; $i++) { 
+                        $line[] = new Cell($i, $j);
+                    }
+                    $this->board[] = $line;
+                    }
+                        $this->place_mines();
             }
-            $this->place_mines();
+            $this->update_board();
+            
+            
         }
-        
+        function update_board(){
+            $_SESSION['board'] = $this->board;
+            $this->show_board();
+        }
         private function place_mines(){
             for ($i=0; $i < $this->bombs; $i++) { 
                 $column = random_int(0, $this->columns - 1);
@@ -95,7 +116,7 @@
                 
             }
         }
-        function get_neighbors($row, $column){
+        private function get_neighbors($row, $column){
             $neigbors = [];
             if ($row > 0){
                 $neigbors[] = $this->board[$row - 1][$column];
@@ -149,11 +170,15 @@
                 }
             }
     }
-$a = new Minesweeper();
-
-$a->show_board();
+new Minesweeper();
     ?>
         
+
     </main>
+    <form action="index.php" method="post">
+        <input type="submit" id="restart" value="restart">
+        <input type="hidden" name="restart" value="true">
+    </form>
+    
 </body>
 </html>
