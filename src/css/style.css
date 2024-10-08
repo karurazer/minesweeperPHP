@@ -3,8 +3,25 @@ body{
     justify-content: center;
 
 }
-button{
+main{
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    border: 2px solid black;
+    gap: 5px;
+    background-color: grey;
+    
+
+}
+input{
     height: 50px;
     width: 50px;
-    margin: 5px;
+}
+span{
+    color: black;
+    height: 50px;
+    width: 50px;
+}
+img{
+    height: 50px;
+    width: 50px;
 }

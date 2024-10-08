@@ -9,7 +9,7 @@
 </head>
 <body>
     <main>
-
+    
         <?php
     class Cell{
         public $is_mine = false;
@@ -38,16 +38,20 @@
         }
         function show(){
             if ($this->is_open){
-                if($this->is_mine){
-                    echo '<button>9</button>';
-                }else{
-                    echo '<button>' . $this->mines_around . '</button>';
+                if($this->mines_around == 0){
+                    echo '<span></span>';
+                }else if($this->is_mine){
+                    echo'<img src="src/img/mine.png" alt="mine">';
                 }
-                
-            }else{
-                echo '<button>9</button>';
+                else{
+                    echo "<input type='submit' class='number_mines' value='$this->mines_around'>";
+                }
+               
+                }
+            else{
+                echo '<input type="submit" class="nothing" value="">';
             }
-            }
+        }
         
             
           
@@ -142,7 +146,6 @@
                 foreach($line as $cell){
                         $cell->show();    
                     }
-                echo '<br>';
                 }
             }
     }
