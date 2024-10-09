@@ -9,10 +9,10 @@
     <meta name="author" content="karurazer">
     <title>Saper</title>
     <link rel="stylesheet" href="src/css/style.css">
-    <!-- <style></style> сделать чтобы php сетку создовал как надо и кнопок много -->
+    <!-- <style></style> сделать чтобы php сетку создовал как надо, флаги, победа,порожение-->
 </head>
 <body>
-    <main>
+    
         
         
         <?php
@@ -91,7 +91,12 @@
                     $new_column = $_POST['cell'][2];
                     $this->board = $_SESSION['board'];
                     $this->board[$new_row][$new_column]->open(); 
-                    if($this->board[$new_row][$new_column]->mines_around == 0){
+                    if($this->board[$new_row][$new_column]->is_mine){
+                        
+                        $this->lose();
+                        return;
+                    }
+                    if($this->board[$new_row][$new_column]->mines_around == 0 && !$this->board[$new_row][$new_column]->is_mine){
                         $this->open_around_cell($new_row, $new_column);
                     }
                 }
@@ -172,22 +177,39 @@
             }
         }
         function show_board(){
+            echo '<main>';
             foreach($this->board as $line){
                 foreach($line as $cell){
                         $cell->show();    
                     }
                 }
+            echo'</main><form action="index.php" method="post">
+        <input type="submit" id="restart" value="restart">
+        <input type="hidden" name="restart" value="true">
+    </form>';
             }
+        private function lose(){
+            echo '<main>';
+            foreach($this->board as $line){
+                foreach($line as $cell){
+                        $cell->open();
+                        $cell->show();    
+                    }
+                }
+            echo'</main>';
+            echo'<form action="index.php" method="post">
+        <input type="submit" id="restart" value="restart">
+        <input type="hidden" name="restart" value="true">
+    </form>';
+            }
+        
     }
 new Minesweeper();
     ?>
         
 
-    </main>
-    <form action="index.php" method="post">
-        <input type="submit" id="restart" value="restart">
-        <input type="hidden" name="restart" value="true">
-    </form>
+    
+    
     
 </body>
 </html>
