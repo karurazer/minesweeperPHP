@@ -62,13 +62,9 @@
             else{
                 echo '<input type="submit" class="nothing" value="">';
             }
-            if(!isset($_POST['cell'])){
-                echo "<input type='hidden' name='cell' value='$this->row $this->column 1'>";
-                echo '</form>';
-            }else{
-                echo "<input type='hidden' name='cell' value='$this->row $this->column 0'>";
-                echo '</form>';
-            }
+            echo "<input type='hidden' name='cell' value='$this->row $this->column'>";
+            echo '</form>';
+            
         }
             
           
@@ -81,7 +77,7 @@
         private $bombs;
         private $board = [];
         private $max_mines_around;
-        function __construct($columns = 8, $rows = 8, $bombs=20, $max_mines_around=5){
+        function __construct($columns = 8, $rows = 8, $bombs=10, $max_mines_around=5){
             if(isset($_POST['restart'])){
                 session_unset();
             }
@@ -99,28 +95,13 @@
             }
             if(isset($_SESSION['board'])){
                     $this->board = $_SESSION['board'];
+                    
                     if(isset($_POST['cell'])){
                         $t = explode(" ",$_POST['cell']);
                         $new_row = $t[0];
                         $new_column = $t[1];
-                        $first = $t[2];
                         $this->board[$new_row][$new_column]->open();        
                     
-                    if($first + 0 == 1){
-                        if(($this->board[$new_row][$new_column])->is_mine){
-                            $this->board[$new_row][$new_column]->is_mine = false;
-                            $this->board[$new_row][$new_column]->can_be_mine = false;
-                            foreach($this->get_neighbors($new_row, $new_column) as $item){
-                                $item->mines_around--;
-                                if($item->mines_around<$this->max_mines_around){
-                                    foreach($this->get_neighbors($item->row, $item->column) as $extra){
-                                        $extra->can_be_mine = true;
-                                    }
-                                }
-                            }
-                            $this->place_mines(1);
-                        }
-                    }
                     if($this->board[$new_row][$new_column]->is_mine){
                         $this->lose();
                         return;
@@ -139,6 +120,7 @@
                 }
                 $this->place_mines($this->bombs);
             }
+            $this->first_move();
             $this->update_board();
             
             
@@ -147,6 +129,23 @@
             $_SESSION['board'] = $this->board;
             $this->show_board();
            
+        }
+        private function first_move(){
+            foreach($this->board as $row){
+                foreach($row as $cell){
+                    if($cell->is_open){
+                        return;
+                    }
+                }
+            }
+            foreach($this->board as $row){
+                foreach($row as $cell){
+                    if($cell->mines_around == 0 && !$cell->is_mine){
+                        $this->open_around_cell($cell->row,$cell->column);
+                        return;
+                    }
+                }
+            }
         }
         private function place_mines($bombs){
             $i = 0;
@@ -207,6 +206,7 @@
         }
         function open_around_cell($row, $column){
            $t = $this->get_neighbors($row, $column);
+            $this->board[$row][$column]->is_open = true;
             foreach($t as $cell){
                 if($cell->mines_around == 0 && !$cell->is_open){
                     $cell->open();
