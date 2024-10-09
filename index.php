@@ -86,9 +86,9 @@
 
             if(isset($_SESSION['board'])){
                 if(isset($_POST['cell'])){
-                    explode(" ",$_POST['cell']);
-                    $new_row = $_POST['cell'][0];
-                    $new_column = $_POST['cell'][2];
+                    $t = explode(" ",$_POST['cell']);
+                    $new_row = $t[0];
+                    $new_column = $t[1];
                     $this->board = $_SESSION['board'];
                     $this->board[$new_row][$new_column]->open(); 
                     if($this->board[$new_row][$new_column]->is_mine){
