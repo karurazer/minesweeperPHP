@@ -2,16 +2,15 @@
     session_start();
 
 
-    
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="author" content="karurazer">
-    <title>Saper</title>
+    <title>Minesweeper</title>
     <link rel="stylesheet" href="src/css/style.css">
-    <!-- <style></style> сделать чтобы php сетку создовал как надо, флаги, победа,порожение-->
+    <!-- <style></style> сделать чтобы php сетку создовал как надо, флаги, победа,порожение сделать нормальную генерацию-->
 </head>
 <body>
     
@@ -21,11 +20,11 @@
     class Cell{
         public $is_mine = false;
         public $is_open = false;
-        public $was_mine = false;
+        public $can_be_mine = true;
         public $row;
         public $column;
         public $mines_around = 0;
-        private $max_mines_around = 4;
+
         function __construct($column, $row){
             $this->column=$column;
             $this->row=$row;
@@ -34,7 +33,7 @@
             $this->is_open = true;
         }
         function can_be_mine(){
-            if(!$this->is_mine && $this->mines_around <= $this->max_mines_around && !$this->was_mine){
+            if(!$this->is_mine && $this->can_be_mine){
                 return true;
             }else{
                 return false;
@@ -81,13 +80,23 @@
         private $rows;
         private $bombs;
         private $board = [];
-        function __construct($columns = 8, $rows = 8, $bombs=10){
-            if (isset($_POST['restart'])){
-                session_unset();  
+        private $max_mines_around;
+        function __construct($columns = 8, $rows = 8, $bombs=20, $max_mines_around=5){
+            if(isset($_POST['restart'])){
+                session_unset();
             }
             $this->columns = $columns;
             $this->rows = $rows;
             $this->bombs = $bombs;
+            $this->max_mines_around = $max_mines_around;
+            if(($this->rows * $this->columns * $this->max_mines_around) / 10 < $this->bombs){
+                echo'To many mines!!';
+                echo'</main><form action="index.php" method="post">
+        <input type="submit" id="restart" value="restart">
+        <input type="hidden" name="restart" value="true">
+    </form>';
+    exit;
+            }
             if(isset($_SESSION['board'])){
                     $this->board = $_SESSION['board'];
                     if(isset($_POST['cell'])){
@@ -100,9 +109,14 @@
                     if($first + 0 == 1){
                         if(($this->board[$new_row][$new_column])->is_mine){
                             $this->board[$new_row][$new_column]->is_mine = false;
-                            $this->board[$new_row][$new_column]->was_mine = true;
+                            $this->board[$new_row][$new_column]->can_be_mine = false;
                             foreach($this->get_neighbors($new_row, $new_column) as $item){
                                 $item->mines_around--;
+                                if($item->mines_around<$this->max_mines_around){
+                                    foreach($this->get_neighbors($item->row, $item->column) as $extra){
+                                        $extra->can_be_mine = true;
+                                    }
+                                }
                             }
                             $this->place_mines(1);
                         }
@@ -148,6 +162,14 @@
                 
             
         }
+        private function checker_numbers_of_mines($row, $column){
+            if($this->board[$row][$column]->mines_around >= $this->max_mines_around){
+                $t = $this->get_neighbors($row,$column);
+                foreach($t as $cell){
+                    $cell->can_be_mine = false;
+                }
+            }
+        }
         private function get_neighbors($row, $column){
             $neigbors = [];
             if ($row > 0){
@@ -179,6 +201,8 @@
         private function add_neighbors_mines($row, $column){
             foreach($this->get_neighbors($row, $column) as $neigbor){
                 $neigbor->plus_neighbor();
+                $this->checker_numbers_of_mines($neigbor->row, $neigbor->column);
+                
             }
         }
         function open_around_cell($row, $column){
@@ -212,7 +236,7 @@
                         $cell->show();    
                     }
                 }
-            session_unset();
+            session_destroy();
             echo'</main>';
             echo'<form action="index.php" method="post">
                 <input type="submit" id="restart" value="try again">
