@@ -1,5 +1,7 @@
 <?php
     session_start();
+
+
     
 ?>
 <!DOCTYPE html>
@@ -23,7 +25,7 @@
         public $row;
         public $column;
         public $mines_around = 0;
-        private $max_mines_around = 5;
+        private $max_mines_around = 4;
         function __construct($column, $row){
             $this->column=$column;
             $this->row=$row;
@@ -61,11 +63,11 @@
             else{
                 echo '<input type="submit" class="nothing" value="">';
             }
-            if(!isset($_SESSION['board'])){
-                echo "<input type='hidden' name='cell' value='$this->row $this->column 1'>";
+            if(!isset($_POST['cell'])){
+                echo "<input type='hidden' name='cell' value='$this->row $this->column 1 " . (int)$this->is_mine . "'>";
                 echo '</form>';
             }else{
-                echo "<input type='hidden' name='cell' value='$this->row $this->column 0'>";
+                echo "<input type='hidden' name='cell' value='$this->row $this->column 0 " . (int)$this->is_mine . "'>";
                 echo '</form>';
             }
         }
@@ -77,7 +79,6 @@
     class Minesweeper{
         private $columns;
         private $rows;
-        private $size;
         private $bombs;
         private $board = [];
         function __construct($columns = 8, $rows = 8, $bombs=10){
@@ -86,32 +87,26 @@
             }
             $this->columns = $columns;
             $this->rows = $rows;
-            $this->size = $this->rows * $this->columns;
             $this->bombs = $bombs;
             if(isset($_SESSION['board'])){
-                if(isset($_POST['cell'])){
-                    $t = explode(" ",$_POST['cell']);
-                    $new_row = $t[0];
-                    $new_column = $t[1];
-                    $first = $t[2];
                     $this->board = $_SESSION['board'];
-                    $this->board[$new_row][$new_column]->open();        
                     if(isset($_POST['cell'])){
-                $t = explode(" ",$_POST['cell']);
-                $new_row = $t[0];
-                $new_column = $t[1];
-                $first = $t[2];
-                if($first + 0 == 1){
-                    if(($this->board[$new_row][$new_column])->is_mine){
-                        $this->board[$new_row][$new_column]->is_mine = false;
-                        $this->board[$new_row][$new_column]->was_mine = true;
-                        foreach($this->get_neighbors($new_row, $new_column) as $item){
-                            $item->mines_around--;
+                        $t = explode(" ",$_POST['cell']);
+                        $new_row = $t[0];
+                        $new_column = $t[1];
+                        $first = $t[2];
+                        $this->board[$new_row][$new_column]->open();        
+                    
+                    if($first + 0 == 1){
+                        if(($this->board[$new_row][$new_column])->is_mine){
+                            $this->board[$new_row][$new_column]->is_mine = false;
+                            $this->board[$new_row][$new_column]->was_mine = true;
+                            foreach($this->get_neighbors($new_row, $new_column) as $item){
+                                $item->mines_around--;
+                            }
+                            $this->place_mines(1);
                         }
-                        $this->place_mines(1);
                     }
-                }
-            }
                     if($this->board[$new_row][$new_column]->is_mine){
                         $this->lose();
                         return;
@@ -122,38 +117,36 @@
                 }
             }else{
                 for ($j=0;$j<$this->rows;$j++){
-                        $line=[];
+                    $line=[];
                     for ($i=0; $i < $this->columns; $i++) { 
                         $line[] = new Cell($i, $j);
                     }
                     $this->board[] = $line;
-                    }
-                        $this->place_mines($this->bombs);
+                }
+                $this->place_mines($this->bombs);
             }
             $this->update_board();
             
             
         }
         function update_board(){
-            if(isset($_POST['cell'])){
-                $_SESSION['board'] = $this->board;
-            }
+            $_SESSION['board'] = $this->board;
             $this->show_board();
            
         }
         private function place_mines($bombs){
-            for ($i=0; $i < $bombs; $i++) { 
+            $i = 0;
+            do { 
                 $column = random_int(0, $this->columns - 1);
                 $row = random_int(0, $this->rows - 1);
                 if ($this->board[$row][$column]->can_be_mine()){
                     $this->board[$row][$column]->set_bomb();
                     $this->add_neighbors_mines($row, $column);
-                }
-                else{
-                    $i--;
-                }
+                    $i++;
+                } 
+            }while($i < $bombs);
                 
-            }
+            
         }
         private function get_neighbors($row, $column){
             $neigbors = [];
