@@ -10,7 +10,7 @@
     <meta name="author" content="karurazer">
     <title>Minesweeper</title>
     <link rel="stylesheet" href="src/css/style.css">
-    <!-- <style></style> сделать чтобы php сетку создовал как надо, флаги, победа,порожение сделать нормальную генерацию-->
+    <!-- <style></style> сделать чтобы php сетку создовал как надо, флаги, победа,порожение сделать нормальную генерацию, пустые элементы криво в гриде отображаются-->
 </head>
 <body>
     
@@ -50,7 +50,7 @@
             echo '<form action="index.php" method="post">';
             if ($this->is_open){
                 if($this->mines_around == 0 && !$this->is_mine){
-                    echo '<span></span>';
+                    echo '<div></div>';
                 }else if($this->is_mine){
                     echo'<img src="src/img/mine.png" alt="mine">';
                 }
@@ -217,6 +217,7 @@
             }
         }
         function show_board(){
+            $this->win_check();
             echo '<main>';
             foreach($this->board as $line){
                 foreach($line as $cell){
@@ -228,6 +229,32 @@
         <input type="hidden" name="restart" value="true">
     </form>';
             }
+        private function win_check(){
+            $i = 0;
+            foreach($this->board as $row){
+                foreach($row as $cell){
+                    if($cell->is_open){
+                        $i++;
+                    }
+                }
+            }
+            if($i == ($this->rows * $this->columns) - $this->bombs){
+                echo '<main>';
+                foreach($this->board as $line){
+                    foreach($line as $cell){
+                            $cell->open();
+                            $cell->show();    
+                        }
+                    }
+                session_destroy();
+                echo'</main>';
+                echo'<form action="index.php" method="post">
+                    <input type="submit" id="restart" value="WIN!!!">
+                    <input type="hidden" name="restart" value="true">
+                    </form>';
+                exit;
+            }
+        }
         private function lose(){
             echo '<main>';
             foreach($this->board as $line){
@@ -242,6 +269,7 @@
                 <input type="submit" id="restart" value="try again">
                 <input type="hidden" name="restart" value="true">
                 </form>';
+            exit;
             }
         
     }

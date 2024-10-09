@@ -9,7 +9,7 @@ main{
     border: 2px solid black;
     gap: 5px;
     background-color: grey;
-    
+
 
 }
 .nothing, .number_mines{
@@ -17,10 +17,6 @@ main{
     width: 50px;
 }
 
-span{
-    height: 50px;
-    width: 50px;
-}
 img{
     height: 50px;
     width: 50px;
