@@ -19,6 +19,7 @@
     class Cell{
         public $is_mine = false;
         public $is_open = false;
+        public $was_mine = false;
         public $row;
         public $column;
         public $mines_around = 0;
@@ -31,7 +32,7 @@
             $this->is_open = true;
         }
         function can_be_mine(){
-            if(!$this->is_mine && $this->mines_around <= $this->max_mines_around){
+            if(!$this->is_mine && $this->mines_around <= $this->max_mines_around && !$this->was_mine){
                 return true;
             }else{
                 return false;
@@ -44,7 +45,6 @@
         function set_bomb(){
             $this->is_mine = true;
         }
-        
         function show(){
             echo '<form action="index.php" method="post">';
             if ($this->is_open){
@@ -61,8 +61,13 @@
             else{
                 echo '<input type="submit" class="nothing" value="">';
             }
-            echo "<input type='hidden' name='cell' value='$this->row $this->column'>";
-            echo '</form>';
+            if(!isset($_SESSION['board'])){
+                echo "<input type='hidden' name='cell' value='$this->row $this->column 1'>";
+                echo '</form>';
+            }else{
+                echo "<input type='hidden' name='cell' value='$this->row $this->column 0'>";
+                echo '</form>';
+            }
         }
             
           
@@ -83,16 +88,31 @@
             $this->rows = $rows;
             $this->size = $this->rows * $this->columns;
             $this->bombs = $bombs;
-
             if(isset($_SESSION['board'])){
                 if(isset($_POST['cell'])){
                     $t = explode(" ",$_POST['cell']);
                     $new_row = $t[0];
                     $new_column = $t[1];
+                    $first = $t[2];
                     $this->board = $_SESSION['board'];
-                    $this->board[$new_row][$new_column]->open(); 
+                    $this->board[$new_row][$new_column]->open();        
+                    if(isset($_POST['cell'])){
+                $t = explode(" ",$_POST['cell']);
+                $new_row = $t[0];
+                $new_column = $t[1];
+                $first = $t[2];
+                if($first + 0 == 1){
+                    if(($this->board[$new_row][$new_column])->is_mine){
+                        $this->board[$new_row][$new_column]->is_mine = false;
+                        $this->board[$new_row][$new_column]->was_mine = true;
+                        foreach($this->get_neighbors($new_row, $new_column) as $item){
+                            $item->mines_around--;
+                        }
+                        $this->place_mines(1);
+                    }
+                }
+            }
                     if($this->board[$new_row][$new_column]->is_mine){
-                        
                         $this->lose();
                         return;
                     }
@@ -108,18 +128,21 @@
                     }
                     $this->board[] = $line;
                     }
-                        $this->place_mines();
+                        $this->place_mines($this->bombs);
             }
             $this->update_board();
             
             
         }
         function update_board(){
-            $_SESSION['board'] = $this->board;
+            if(isset($_POST['cell'])){
+                $_SESSION['board'] = $this->board;
+            }
             $this->show_board();
+           
         }
-        private function place_mines(){
-            for ($i=0; $i < $this->bombs; $i++) { 
+        private function place_mines($bombs){
+            for ($i=0; $i < $bombs; $i++) { 
                 $column = random_int(0, $this->columns - 1);
                 $row = random_int(0, $this->rows - 1);
                 if ($this->board[$row][$column]->can_be_mine()){
@@ -196,20 +219,16 @@
                         $cell->show();    
                     }
                 }
+            session_unset();
             echo'</main>';
             echo'<form action="index.php" method="post">
-        <input type="submit" id="restart" value="restart">
-        <input type="hidden" name="restart" value="true">
-    </form>';
+                <input type="submit" id="restart" value="try again">
+                <input type="hidden" name="restart" value="true">
+                </form>';
             }
         
     }
 new Minesweeper();
     ?>
-        
-
-    
-    
-    
 </body>
 </html>
