@@ -64,10 +64,10 @@
                 echo '<input type="submit" class="nothing" value="">';
             }
             if(!isset($_POST['cell'])){
-                echo "<input type='hidden' name='cell' value='$this->row $this->column 1 " . (int)$this->is_mine . "'>";
+                echo "<input type='hidden' name='cell' value='$this->row $this->column 1'>";
                 echo '</form>';
             }else{
-                echo "<input type='hidden' name='cell' value='$this->row $this->column 0 " . (int)$this->is_mine . "'>";
+                echo "<input type='hidden' name='cell' value='$this->row $this->column 0'>";
                 echo '</form>';
             }
         }
